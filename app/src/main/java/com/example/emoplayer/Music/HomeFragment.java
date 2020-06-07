@@ -74,7 +74,7 @@ public class HomeFragment extends Fragment {
 
     public Bitmap bitmap;
     public String emotion;
-    public Rect bounds;
+    //public Rect bounds;
     public static List<String> label = Arrays.asList("angry", "disgust", "scared", "happy", "sad", "surprised", "neutral");
 
     private TextView emotionTV;
@@ -292,7 +292,7 @@ public class HomeFragment extends Fragment {
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "runModel: detector: failed: " + e.getMessage());
             }
-        })
+        });
 //                        new OnSuccessListener<List<FirebaseVisionFace>>() {
 //                            @Override
 //                            public void onSuccess(List<FirebaseVisionFace> faces) {
@@ -325,7 +325,7 @@ public class HomeFragment extends Fragment {
 
     private void getFaceResults(List<FirebaseVisionFace> faces) {
         for (FirebaseVisionFace face : faces) {
-            bounds = face.getBoundingBox();
+           Rect bounds = face.getBoundingBox();
             Bitmap croppedBmp = Bitmap.createBitmap(bitmap, bounds.left, bounds.top, bounds.right, bounds.bottom);
                                 try {
                                     IdentifyEmotion(croppedBmp);
@@ -352,20 +352,28 @@ public class HomeFragment extends Fragment {
                 .build();
 
         firebaseInterpreter.run(inputs, inputOutputOptions)
-                .addOnSuccessListener(new OnSuccessListener<FirebaseModelOutputs>() {
-                    @Override
-                    public void onSuccess(FirebaseModelOutputs result) {
-                        // [START_EXCLUDE]
+        firebaseInterpreter.run(inputs, inputOutputOptions)
+                .addOnSuccessListener(
+                        new OnSuccessListener<FirebaseModelOutputs>() {
+                            @Override
+                            public void onSuccess(FirebaseModelOutputs result) {
+                                  Log.d(TAG, "IdentifyEmotion: interpreter run successful");
+                                                        float[][] output = result.getOutput(0);
+                                                        float[] probabilities = output[0];
+                                                        emotion = useInferenceResult(probabilities);
+                                                        Log.d(TAG, "emotion successful :" + emotion);
+                                                        getEmotion();
+                            }
+                        })
                         // [START mlkit_read_result]
-                        Log.d(TAG, "IdentifyEmotion: interpreter run successful");
-                        float[][] output = result.getOutput(0);
-                        float[] probabilities = output[0];
-                        emotion = useInferenceResult(probabilities);
-                        Log.d(TAG, "emotion successful :" + emotion);
-                        getEmotion();
+//                        Log.d(TAG, "IdentifyEmotion: interpreter run successful");
+//                        float[][] output = result.getOutput(0);
+//                        float[] probabilities = output[0];
+//                        emotion = useInferenceResult(probabilities);
+//                        Log.d(TAG, "emotion successful :" + emotion);
+//                        getEmotion();
 
-                    }
-                })
+
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
